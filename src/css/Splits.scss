@@ -122,6 +122,10 @@ $split-icon-two-row-size: $two-row-height - $vertical-padding * 2;
             flex-shrink: 0;
           }
 
+          &.split-time-rainbow {
+            animation: rainbow 2s linear 0s infinite;
+          }
+
           .split-time-inner {
             padding: 0;
           }
@@ -156,5 +160,23 @@ $split-icon-two-row-size: $two-row-height - $vertical-padding * 2;
         border-top-style: solid;
       }
     }
+  }
+}
+
+@keyframes rainbow {
+  from {
+    color: #6666ff;
+  }
+  10% {
+    color: #0099ff;
+  }
+  50% {
+    color: #00ff00;
+  }
+  75% {
+    color: #ff3399;
+  }
+  100% {
+    color: #6666ff;
   }
 }
