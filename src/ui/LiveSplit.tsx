@@ -1,5 +1,6 @@
 import * as React from "react";
 import Sidebar from "react-sidebar";
+import sync from "css-animation-sync";
 import {
     HotkeySystem, Layout, LayoutEditor, Run, RunEditor,
     Segment, SharedTimer, Timer, TimerRef, TimerRefMut,
@@ -20,6 +21,8 @@ import * as Storage from "../storage";
 
 import "react-toastify/dist/ReactToastify.css";
 import "../css/LiveSplit.scss";
+
+sync('rainbow-color');
 
 export enum MenuKind {
     Timer,
