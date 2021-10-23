@@ -18,6 +18,7 @@ export default class KeyValue extends React.Component<Props> {
             keyText={this.props.state.key}
             keyAbbreviations={this.props.state.key_abbreviations}
             keyColor={this.props.state.key_color}
+            semanticColor={this.props.state.semantic_color}
             valueText={this.props.state.value}
             valueColor={this.props.state.value_color}
             wrapperBackground={this.props.state.background}

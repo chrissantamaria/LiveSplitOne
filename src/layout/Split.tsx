@@ -4,6 +4,8 @@ import * as LiveSplit from "../livesplit-core";
 import { colorToCss, gradientToCss } from "../util/ColorUtil";
 import { Option } from "../util/OptionUtil";
 
+import "../css/rainbow.scss";
+
 export interface Props {
     splitsState: {
         has_icons: boolean,
@@ -102,7 +104,7 @@ export default class Split extends React.Component<Props> {
                         {
                             columns.map((column, i) => {
                                 const fullClass = i < columns.length - 1 ? "split-time-full" : "";
-                                const rainbowClass = column.semantic_color === "BestSegment" ? "split-time-rainbow" : "";
+                                const rainbowClass = column.semantic_color === "BestSegment" ? "rainbow-color" : "";
                                 
                                 return (
                                     <div
