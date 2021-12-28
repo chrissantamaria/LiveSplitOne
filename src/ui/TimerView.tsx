@@ -49,6 +49,12 @@ export class TimerView extends React.Component<Props, State> {
             comparison: null,
             timingMethod: null,
         };
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const wsUrl = urlParams.get('ws_url');
+        if (wsUrl !== null) {
+            this.connectToServer(wsUrl);
+        }
     }
 
     public render() {
@@ -165,7 +171,7 @@ export class TimerView extends React.Component<Props, State> {
                         </button>
                     </div>
                     <hr />
-                    <button onClick={(_) => this.connectToServerOrDisconnect()}>
+                    <button onClick={(_) => this.handleClickConnectOrDisconnect()}>
                         {
                             (() => {
                                 const connectionState = this.connection?.readyState ?? WebSocket.CLOSED;
@@ -218,7 +224,7 @@ export class TimerView extends React.Component<Props, State> {
         }
     }
 
-    private connectToServerOrDisconnect() {
+    private handleClickConnectOrDisconnect() {
         if (this.connection) {
             if (this.connection.readyState === WebSocket.OPEN) {
                 this.connection.close();
@@ -226,10 +232,16 @@ export class TimerView extends React.Component<Props, State> {
             }
             return;
         }
+
         const url = prompt("Specify the WebSocket URL:");
         if (!url) {
             return;
         }
+
+        this.connectToServer(url);
+    }
+
+    private connectToServer(url: string) {
         try {
             this.connection = new WebSocket(url);
         } catch (e) {
