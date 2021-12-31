@@ -1,5 +1,6 @@
 import { Run } from "../livesplit-core";
 import { PostRunResponse } from "./json/PostRunResponse";
+import { GetRunnerPBsResponse } from './json/GetRunnerPBsResponse';
 
 function mapPromiseErr<T, E>(promise: Promise<T>, err: E): Promise<T> {
     return promise.catch((_) => { throw err; });
@@ -72,6 +73,8 @@ export enum DownloadError {
     ApiRequestErrored,
     InvalidBuffer,
     FailedParsing,
+    InvalidJsonResponse,
+    GameNotFound,
 }
 
 export async function downloadById(id: string): Promise<Run> {
@@ -97,4 +100,29 @@ export async function downloadById(id: string): Promise<Run> {
             throw DownloadError.FailedParsing;
         }
     });
+}
+
+export async function downloadPBByUsername(username: string, game: string): Promise<Run> {
+    const pbsResponse = await validatedFetch(
+        `https://splits.io/api/v4/runners/${username}/pbs`,
+        {
+            headers: new Headers({
+                Accept: "application/original-timer",
+            }),
+        },
+        DownloadError.ApiRequestErrored,
+    );
+
+    const { pbs }: GetRunnerPBsResponse = await mapPromiseErr(
+        pbsResponse.json(),
+        DownloadError.InvalidJsonResponse,
+    );
+    
+    const pb = pbs.find((pb) => pb.game.shortname === game);
+
+    if (pb === undefined) {
+        throw DownloadError.GameNotFound;
+    }
+
+    return downloadById(pb.id);
 }
