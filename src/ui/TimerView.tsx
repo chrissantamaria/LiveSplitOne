@@ -254,7 +254,7 @@ export class TimerView extends React.Component<Props, State> {
             return;
         }
 
-        const url = prompt("Specify the WebSocket URL:");
+        const url = prompt("Specify the WebSocket URL:", "ws://localhost");
         if (!url) {
             return;
         }
