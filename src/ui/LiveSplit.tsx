@@ -145,7 +145,9 @@ export class LiveSplit extends React.Component<Props, State> {
         }
 
         const isDesktop = this.isDesktopQuery.matches;
-        const isBrowserSource = !!(window as any).obsstudio;
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const isBrowserSource = !!(window as any).obsstudio && urlParams.get("browserSource") !== 'false';
 
         this.state = {
             isDesktop: isDesktop && !isBrowserSource,

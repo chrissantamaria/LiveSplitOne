@@ -39,6 +39,23 @@ interface Callbacks {
     renderViewWithSidebar(renderedView: JSX.Element, sidebarContent: JSX.Element): JSX.Element,
 }
 
+enum Action {
+    START = "start",
+    SPLIT = "split",
+    SPLIT_OR_START = 'splitorstart',
+    RESET = "reset",
+    TOGGLE_PAUSE = "togglepause",
+    UNDO = "undo",
+    SKIP = "skip",
+    INIT_GAME_TIME = "initgametime",
+    SET_GAME_TIME = "setgametime",
+    SET_LOADING_TIMES = "setloadingtimes",
+    PAUSE_GAME_TIME = "pausegametime",
+    RESUME_GAME_TIME = "resumegametime"
+}
+
+type ActionHandler = (...args: string[]) => void;
+
 export class TimerView extends React.Component<Props, State> {
     private connection: Option<WebSocket>;
 
@@ -49,6 +66,12 @@ export class TimerView extends React.Component<Props, State> {
             comparison: null,
             timingMethod: null,
         };
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const wsUrl = urlParams.get('ws_url');
+        if (wsUrl !== null) {
+            this.connectToServer(wsUrl);
+        }
     }
 
     componentWillUnmount() {
@@ -72,7 +95,7 @@ export class TimerView extends React.Component<Props, State> {
         >
             <div>
                 <div
-                    onClick={(_) => this.splitOrStart()}
+                    onClick={(_) => this.getActionHandler(Action.SPLIT_OR_START)()}
                     style={{
                         display: "inline-block",
                         cursor: "pointer",
@@ -89,17 +112,17 @@ export class TimerView extends React.Component<Props, State> {
                 </div>
                 <div className="buttons" style={{ width: this.props.layoutWidth }}>
                     <div className="small">
-                        <button aria-label="Undo Split" onClick={(_) => this.undoSplit()}>
+                        <button aria-label="Undo Split" onClick={(_) => this.getActionHandler(Action.UNDO)()}>
                             <i className="fa fa-arrow-up" aria-hidden="true" /></button>
-                        <button aria-label="Pause" onClick={(_) => this.togglePauseOrStart()}>
+                        <button aria-label="Pause" onClick={(_) => this.getActionHandler(Action.TOGGLE_PAUSE)()}>
                             <i className="fa fa-pause" aria-hidden="true" />
                         </button>
                     </div>
                     <div className="small">
-                        <button aria-label="Skip Split" onClick={(_) => this.skipSplit()}>
+                        <button aria-label="Skip Split" onClick={(_) => this.getActionHandler(Action.SKIP)()}>
                             <i className="fa fa-arrow-down" aria-hidden="true" />
                         </button>
-                        <button aria-label="Reset" onClick={(_) => this.reset()}>
+                        <button aria-label="Reset" onClick={(_) => this.getActionHandler(Action.RESET)()}>
                             <i className="fa fa-times" aria-hidden="true" />
                         </button>
                     </div>
@@ -169,7 +192,7 @@ export class TimerView extends React.Component<Props, State> {
                         </button>
                     </div>
                     <hr />
-                    <button onClick={(_) => this.connectToServerOrDisconnect()}>
+                    <button onClick={(_) => this.handleClickConnectOrDisconnect()}>
                         {
                             (() => {
                                 const connectionState = this.connection?.readyState ?? WebSocket.CLOSED;
@@ -222,7 +245,7 @@ export class TimerView extends React.Component<Props, State> {
         }
     }
 
-    private connectToServerOrDisconnect() {
+    private handleClickConnectOrDisconnect() {
         if (this.connection) {
             if (this.connection.readyState === WebSocket.OPEN) {
                 this.connection.close();
@@ -230,10 +253,16 @@ export class TimerView extends React.Component<Props, State> {
             }
             return;
         }
+
         const url = prompt("Specify the WebSocket URL:");
         if (!url) {
             return;
         }
+
+        this.connectToServer(url);
+    }
+
+    private connectToServer(url: string) {
         try {
             this.connection = new WebSocket(url);
         } catch (e) {
@@ -255,20 +284,9 @@ export class TimerView extends React.Component<Props, State> {
             // mounted.
             if (typeof e.data === "string") {
                 const [command, ...args] = e.data.split(" ");
-                switch (command) {
-                    case "start": this.start(); break;
-                    case "split": this.split(); break;
-                    case "splitorstart": this.splitOrStart(); break;
-                    case "reset": this.reset(); break;
-                    case "togglepause": this.togglePauseOrStart(); break;
-                    case "undo": this.undoSplit(); break;
-                    case "skip": this.skipSplit(); break;
-                    case "initgametime": this.initializeGameTime(); break;
-                    case "setgametime": this.setGameTime(args[0]); break;
-                    case "setloadingtimes": this.setLoadingTimes(args[0]); break;
-                    case "pausegametime": this.pauseGameTime(); break;
-                    case "resumegametime": this.resumeGameTime(); break;
-                }
+
+                const actionHandler = this.getActionHandler(command, false);
+                actionHandler(...args);
             }
         };
         this.connection.onclose = (_) => {
@@ -278,6 +296,33 @@ export class TimerView extends React.Component<Props, State> {
             this.connection = null;
             this.forceUpdate();
         };
+    }
+
+    private ACTION_HANDLER_MAP: Partial<Record<string, ActionHandler>> = {
+        [Action.START]: this.start,
+        [Action.SPLIT]: this.split,
+        [Action.SPLIT_OR_START]: this.splitOrStart,
+        [Action.RESET]: this.reset,
+        [Action.TOGGLE_PAUSE]: this.togglePauseOrStart,
+        [Action.UNDO]: this.undoSplit,
+        [Action.SKIP]: this.skipSplit,
+        [Action.INIT_GAME_TIME]: this.initializeGameTime,
+        [Action.SET_GAME_TIME]: this.setGameTime,
+        [Action.SET_LOADING_TIMES]: this.setLoadingTimes,
+        [Action.PAUSE_GAME_TIME]: this.pauseGameTime,
+        [Action.RESUME_GAME_TIME]: this.resumeGameTime,
+    }
+
+    private getActionHandler(action: string, emitToWebsocket: boolean = true): ActionHandler {
+        const actionHandler = this.ACTION_HANDLER_MAP[action]?.bind(this);
+        
+        return (...args: string[]) => {
+            actionHandler?.(...args);
+
+            if (emitToWebsocket) {
+                this.connection?.send([action, ...args].join(" "));
+            }
+        }
     }
 
     private writeWith<T>(action: (timer: TimerRefMut) => T): T {
