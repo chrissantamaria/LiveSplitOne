@@ -70,8 +70,11 @@ export class SplitsSelection extends React.Component<Props, State> {
                         <button onClick={() => this.importSplits()}>
                             <i className="fa fa-download" aria-hidden="true" /> Import
                         </button>
-                        <button onClick={() => this.importSplitsFromSplitsIO()}>
-                            <i className="fa fa-download" aria-hidden="true" /> From Splits.io
+                        <button onClick={() => this.importSplitsFromSplitsIOByID()}>
+                            <i className="fa fa-download" aria-hidden="true" /> From Splits.io (by ID)
+                        </button>
+                        <button onClick={() => this.importSplitsFromSplitsIOByUsername()}>
+                            <i className="fa fa-download" aria-hidden="true" /> From Splits.io (by username)
                         </button>
                     </div>
                     {
@@ -363,7 +366,7 @@ export class SplitsSelection extends React.Component<Props, State> {
         }
     }
 
-    private async importSplitsFromSplitsIO() {
+    private async importSplitsFromSplitsIOByID() {
         let id = prompt("Specify the Splits.io URL or ID:");
         if (!id) {
             return;
@@ -373,6 +376,25 @@ export class SplitsSelection extends React.Component<Props, State> {
         }
         try {
             const run = await SplitsIO.downloadById(id);
+            await this.storeRun(run);
+        } catch (_) {
+            toast.error("Failed to download the splits.");
+        }
+    }
+
+    private async importSplitsFromSplitsIOByUsername() {
+        const game = prompt("Specify the Splits.io game shortname (i.e. \"smo\"):", "smo");
+        if (!game) {
+            return;
+        }
+
+        const username = prompt("Specify the Splits.io username:", "chrissantamaria");
+        if (!username) {
+            return;
+        }
+
+        try {
+            const run = await SplitsIO.downloadPBByUsername(username, game);
             await this.storeRun(run);
         } catch (_) {
             toast.error("Failed to download the splits.");

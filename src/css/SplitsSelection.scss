@@ -36,6 +36,8 @@ $splits-row-height: 40px;
       }
 
       @include mobile {
+        flex-direction: column;
+
         margin-top: $ui-margin;
         margin-left: $ui-margin;
       }
