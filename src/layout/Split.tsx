@@ -4,6 +4,8 @@ import * as LiveSplit from "../livesplit-core";
 import { colorToCss, gradientToCss } from "../util/ColorUtil";
 import { Option } from "../util/OptionUtil";
 
+import "../css/rainbow.scss";
+
 export interface Props {
     splitsState: {
         has_icons: boolean,
@@ -100,19 +102,24 @@ export default class Split extends React.Component<Props> {
                         className="split-row split-second-row"
                     >
                         {
-                            columns.map((column, i) =>
-                                <div
-                                    key={i}
-                                    className={`split-time time times-font ${i < columns.length - 1 ? "split-time-full" : ""}`}
-                                    style={{
-                                        color: colorToCss(column.visual_color),
-                                    }}
-                                >
-                                    <div className="split-time-inner">
-                                        {column.value}
+                            columns.map((column, i) => {
+                                const fullClass = i < columns.length - 1 ? "split-time-full" : "";
+                                const rainbowClass = column.semantic_color === "BestSegment" ? "rainbow-color" : "";
+                                
+                                return (
+                                    <div
+                                        key={i}
+                                        className={`split-time time times-font ${fullClass} ${rainbowClass}`}
+                                        style={{
+                                            color: colorToCss(column.visual_color),
+                                        }}
+                                    >
+                                        <div className="split-time-inner">
+                                            {column.value}
+                                        </div>
                                     </div>
-                                </div>,
-                            ).reverse()
+                                );
+                            }).reverse()
                         }
                     </div>
                 </div>

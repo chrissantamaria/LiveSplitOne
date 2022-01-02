@@ -6,6 +6,7 @@ import { map } from "../util/OptionUtil";
 import Abbreviated from "./Abbreviated";
 
 import "../css/KeyValue.scss";
+import "../css/rainbow.scss";
 
 export enum KeyValueDisplay {
     Center,
@@ -18,6 +19,7 @@ export interface Props {
     keyColor: LiveSplit.Color | null,
     keyText: string,
     keyAbbreviations: string[],
+    semanticColor?: LiveSplit.SemanticColor,
     valueColor: LiveSplit.Color | null,
     valueText: string | null,
     wrapperBackground: LiveSplit.Gradient,
@@ -34,8 +36,9 @@ export default class KeyValueGeneric extends React.Component<Props> {
             <Abbreviated abbreviations={[...this.props.keyAbbreviations, this.props.keyText]} />
         </div>;
 
+        const rainbowClass = this.props.semanticColor === "BestSegment" ? "rainbow-color": "";
         const valueCell = <div
-            className="key-value-value time times-font"
+            className={`key-value-value time times-font ${rainbowClass}`}
             style={{
                 color: map(this.props.valueColor, colorToCss),
             }}
